@@ -105,8 +105,25 @@ def convert(
             doc = parse_pdf(input_pdf)
             progress.update(task, description=f"[green]✓[/green] Parsed {doc.total_pages} pages")
             
+            # Check for image-only PDF (no extractable text)
+            total_blocks = len(doc.get_all_text_blocks())
+            if total_blocks == 0:
+                progress.stop()
+                console.print(
+                    "\n[bold yellow]⚠️  Warning: No extractable text found![/bold yellow]\n\n"
+                    "This PDF appears to contain only images (possibly a scanned document,\n"
+                    "screenshot-based export, or slides saved as images).\n\n"
+                    "[bold]NeetSlides works best with:[/bold]\n"
+                    "  • PDFs exported directly from presentation software\n"
+                    "  • AI-generated PDFs from NotebookLM, ChatGPT, etc.\n"
+                    "  • Born-digital PDFs with selectable text\n\n"
+                    "[dim]Tip: Try opening the PDF and check if you can select/copy text.\n"
+                    "If not, the PDF is image-based and requires OCR (not yet supported).[/dim]"
+                )
+                raise typer.Exit(1)
+            
             if verbose:
-                console.print(f"[dim]  Text blocks: {len(doc.get_all_text_blocks())}[/dim]")
+                console.print(f"[dim]  Text blocks: {total_blocks}[/dim]")
             
             # Phase 2: Analyze semantics
             task2 = progress.add_task("Analyzing slide structure...", total=None)
