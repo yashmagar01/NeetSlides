@@ -1,0 +1,102 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "neetslides"
+version = "0.1.0"
+description = "Convert AI-generated slide PDFs into fully editable PowerPoint files"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Yash", email = "yash@example.com" }
+]
+keywords = [
+    "pdf",
+    "pptx",
+    "powerpoint",
+    "slides",
+    "converter",
+    "ai",
+    "notebooklm",
+    "academic"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Office Suites",
+    "Topic :: Text Processing :: Markup",
+]
+dependencies = [
+    "pdfplumber>=0.10.0",
+    "python-pptx>=0.6.21",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+neetslides = "neetslides.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/neetslides"
+Documentation = "https://github.com/YOUR_USERNAME/neetslides#readme"
+Repository = "https://github.com/YOUR_USERNAME/neetslides"
+Issues = "https://github.com/YOUR_USERNAME/neetslides/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/neetslides"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/README.md",
+    "/LICENSE",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.isort]
+known-first-party = ["neetslides"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src/neetslides --cov-report=term-missing"
