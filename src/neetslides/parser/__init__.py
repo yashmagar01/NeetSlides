@@ -5,13 +5,6 @@ This module handles extraction of text, fonts, and bounding boxes
 from AI-generated PDF slides using pdfplumber.
 """
 
-from typing import Any
+from neetslides.parser.pdf_parser import get_pdf_info, parse_pdf
 
-__all__: list[Any] = []
-
-# TODO: Implement in Phase 1
-# - Page-wise parsing with pdfplumber
-# - Text content extraction
-# - Font size and font name extraction
-# - Bounding box coordinate extraction
-# - Intermediate structured representation per slide
+__all__ = ["parse_pdf", "get_pdf_info"]

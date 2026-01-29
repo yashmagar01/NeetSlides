@@ -113,19 +113,83 @@ def info(
         readable=True,
         resolve_path=True,
     ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        "-j",
+        help="Output as JSON for machine processing.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-V",
+        help="Show detailed text block information.",
+    ),
 ) -> None:
     """
     Display information about a PDF file without converting.
     
     Useful for debugging and understanding PDF structure.
     """
-    console.print(f"[bold]Analyzing:[/bold] {input_pdf}")
+    import json
     
-    # TODO: Implement PDF analysis
-    console.print(
-        "[yellow]⚠️  Analysis engine not yet implemented.[/yellow]\n"
-        "[dim]This is a Phase 0 skeleton. Full implementation coming in Phase 1.[/dim]"
-    )
+    from rich.table import Table
+    from rich.tree import Tree
+    
+    from neetslides.parser import get_pdf_info, parse_pdf
+    
+    console.print(f"[bold]Analyzing:[/bold] {input_pdf}\n")
+    
+    try:
+        info_data = get_pdf_info(input_pdf)
+        
+        if json_output:
+            console.print_json(json.dumps(info_data, indent=2))
+            return
+        
+        # Display summary
+        console.print(
+            Panel(
+                f"[bold]Pages:[/bold] {info_data['total_pages']}\n"
+                f"[bold]Text Blocks:[/bold] {info_data['total_text_blocks']}",
+                title=f"[bold blue]{input_pdf.name}[/bold blue]",
+            )
+        )
+        
+        # Font histogram
+        if info_data["font_sizes"]:
+            console.print("\n[bold]Font Size Distribution:[/bold]")
+            table = Table(show_header=True)
+            table.add_column("Size (pt)", style="cyan")
+            table.add_column("Count", style="green")
+            for size, count in sorted(info_data["font_sizes"].items(), reverse=True):
+                table.add_row(f"{size}", f"{count}")
+            console.print(table)
+        
+        # Verbose: show text blocks per page
+        if verbose:
+            doc = parse_pdf(input_pdf)
+            console.print("\n[bold]Text Blocks by Page:[/bold]")
+            
+            for slide in doc.slides:
+                tree = Tree(f"[bold cyan]Page {slide.page_num + 1}[/bold cyan] ({slide.width:.0f}x{slide.height:.0f})")
+                for block in slide.text_blocks:
+                    size_info = f"[dim]{block.font_size:.1f}pt[/dim]" if block.font_size else ""
+                    # Truncate long text
+                    text = block.text[:60] + "..." if len(block.text) > 60 else block.text
+                    tree.add(f"{text} {size_info}")
+                console.print(tree)
+                console.print()
+        
+        # PDF Metadata
+        if info_data["metadata"]:
+            console.print("\n[bold]PDF Metadata:[/bold]")
+            for key, value in info_data["metadata"].items():
+                console.print(f"  [dim]{key}:[/dim] {value}")
+                
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":
