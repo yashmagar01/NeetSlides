@@ -5,12 +5,16 @@ This module generates editable PowerPoint files using python-pptx,
 with proper semantic placeholders for titles and body content.
 """
 
-from typing import Any
+from neetslides.generator.pptx_generator import (
+    convert_pdf_to_pptx,
+    generate_pptx,
+    create_presentation,
+    add_slide_from_data,
+)
 
-__all__: list[Any] = []
-
-# TODO: Implement in Phase 3
-# - PPTX generation via python-pptx
-# - Proper use of Title and Body placeholders
-# - Font normalization for academic readability
-# - Support for theme reflow and template application
+__all__ = [
+    "convert_pdf_to_pptx",
+    "generate_pptx",
+    "create_presentation",
+    "add_slide_from_data",
+]

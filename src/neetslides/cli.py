@@ -76,6 +76,12 @@ def convert(
     Example:
         neetslides convert slides.pdf -o output.pptx
     """
+    from rich.progress import Progress, SpinnerColumn, TextColumn
+    
+    from neetslides.generator import convert_pdf_to_pptx
+    from neetslides.heuristics import analyze_document
+    from neetslides.parser import parse_pdf
+    
     # Determine output path
     if output is None:
         output = input_pdf.with_suffix(".pptx")
@@ -88,18 +94,44 @@ def convert(
         )
     )
     
-    if verbose:
-        console.print("[dim]Verbose mode enabled[/dim]")
-    
-    # TODO: Implement conversion pipeline
-    # Phase 1: Parse PDF with pdfplumber
-    # Phase 2: Apply semantic heuristics
-    # Phase 3: Generate PPTX with python-pptx
-    
-    console.print(
-        "[yellow]⚠️  Conversion engine not yet implemented.[/yellow]\n"
-        "[dim]This is a Phase 0 skeleton. Full implementation coming in Phases 1-3.[/dim]"
-    )
+    try:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            # Phase 1: Parse PDF
+            task = progress.add_task("Parsing PDF...", total=None)
+            doc = parse_pdf(input_pdf)
+            progress.update(task, description=f"[green]✓[/green] Parsed {doc.total_pages} pages")
+            
+            if verbose:
+                console.print(f"[dim]  Text blocks: {len(doc.get_all_text_blocks())}[/dim]")
+            
+            # Phase 2: Analyze semantics
+            task2 = progress.add_task("Analyzing slide structure...", total=None)
+            analyzed = analyze_document(doc)
+            progress.update(task2, description="[green]✓[/green] Semantic analysis complete")
+            
+            if verbose:
+                for slide in analyzed.slides:
+                    title = slide.title or "(no title)"
+                    console.print(f"[dim]  Page {slide.page_num + 1}: {title}[/dim]")
+            
+            # Phase 3: Generate PPTX
+            task3 = progress.add_task("Generating PPTX...", total=None)
+            from neetslides.generator.pptx_generator import generate_pptx
+            generate_pptx(analyzed, output)
+            progress.update(task3, description="[green]✓[/green] PPTX generated")
+        
+        console.print(f"\n[bold green]✓ Success![/bold green] Output saved to: {output}")
+        
+    except Exception as e:
+        console.print(f"\n[bold red]✗ Error:[/bold red] {e}")
+        if verbose:
+            import traceback
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        raise typer.Exit(1)
 
 
 @app.command()
